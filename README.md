@@ -58,24 +58,26 @@ kube-public   Active    18h
 kube-system   Active    18h
 ```
 
-3. Deploy an app in Kubernetes cluster, take `sleep` app as an example
+3. Deploy an app in Kubernetes cluster, take `nginx` app as an example
 ```
 # cat <<EOF | kubectl create -f -
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sleep
+  name: nginx
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
   template:
     metadata:
       labels:
-        app: sleep
+        app: nginx
     spec:
       containers:
-      - name: sleep
-        image: tutum/curl
-        command: ["/bin/sleep","infinity"]
+      - name: nginx
+        image: nginx
 EOF
 ```
 
@@ -83,9 +85,9 @@ EOF
 ```
 # kubectl get pods
 NAME                     READY   STATUS    RESTARTS   AGE
-sleep-7c97fff775-fbb8w   1/1     Running   0          36s
+nginx-7c97fff775-fbb8w   1/1     Running   0          36s
 
-# kubectl exec -it sleep-7c97fff775-fbb8w -- cat /etc/resolv.conf
+# kubectl exec -it nginx-7c97fff775-fbb8w -- cat /etc/resolv.conf
 nameserver 10.100.200.10
 nameserver 1.2.3.4
 search default.svc.cluster.local svc.cluster.local cluster.local my.dns.search.suffix
