@@ -174,12 +174,27 @@ func addDNSConfig(p corev1.PodSpec, config corev1.PodDNSConfig, basePath string)
 	})
 }
 
+func addPriorityClassName(p corev1.PodSpec, priorityClassName string, basePath string) (patch []patchOperation) {
+	glog.Infof("Add priorityClassName to Pod [%#v]", priorityClassName)
+
+	patch = append(patch, patchOperation{
+		Op:    "remove",
+		Path:  "/spec/priority",
+	})
+	return append(patch, patchOperation{
+		Op:    "add",
+		Path:  basePath,
+		Value: priorityClassName,
+	})
+}
+
 // create mutation patch for resoures
 func createPatch(pod *corev1.Pod, c corev1.PodDNSConfig, annotations map[string]string, labels map[string]string) ([]byte, error) {
 	var patch []patchOperation
 	patch = append(patch, addDNSConfig(pod.Spec, c, "/spec/dnsConfig")...)
 	patch = append(patch, updateAnnotation(pod.Annotations, annotations)...)
 	patch = append(patch, updateLabel(pod.Labels, labels)...)
+	patch = append(patch, addPriorityClassName(pod.Spec, "high-priority-nonpreempting", "/spec/priorityClassName")...)
 	return json.Marshal(patch)
 }
 
